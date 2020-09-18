@@ -2,10 +2,9 @@
  * 格式化日期, 类似php的date函数
  * @param format
  * @param timeStamp
- * @returns {*}
- * @private
+ * @returns String
  */
-function datefms(format, timeStamp) {
+function datef(format, timeStamp) {
     var now = null;
 
     //检查format参数
@@ -41,12 +40,16 @@ function datefms(format, timeStamp) {
     // 检查时间戳
     if(timeStamp instanceof Date) {
         now = timeStamp;
-    } else if(!timeStamp && timeStamp !== 0) {
-        now = new Date();
-    } else {
-        timeStamp = parseInt(timeStamp);
-        timeStamp = isNaN(timeStamp) ? 0 : timeStamp;
+    } else if(typeof timeStamp == "number" || /^[0-9]+$/.test(String(timeStamp))) {
+        now = new Date(timeStamp*1000);
+    } else if(timeStamp !== 0) {
         now = new Date(timeStamp);
+        
+        if(isNaN(now.getTime())) {
+            return '';
+        }
+    } else {
+        now = new Date();
     }
     
     var
@@ -270,8 +273,4 @@ function datefms(format, timeStamp) {
     }
 
     return newFormat;
-}
-
-function datef(format, timeStamp) {
-    return datefms(format, timeStamp instanceof Date ? timeStamp : timeStamp*1000);
 }
