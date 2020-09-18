@@ -207,7 +207,19 @@ function datefms(format, timeStamp) {
     
         // 年份 如:2001
         Y: String(year),
-        o: String(year),
+        o: function() {
+            var weekofyear = week_of_year();
+            
+            if(month == 1 && weekofyear > 8) {
+                return String(year-1);
+            }
+            
+            if(month == 12 && weekofyear < 8) {
+                return String(year + 1);
+            }
+            
+            return String(year);
+        },
         
         // 年份 如 01
         y: function() {
