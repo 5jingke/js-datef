@@ -70,8 +70,8 @@ datef('D M d Y H:i:s', "2020-12-30 10:33:12")
 |H|24-hour format of an hour with leading zeros|00 through 23|
 |i|Minutes with leading zeros|00 to 59|
 |s|Seconds with leading zeros|00 through 59|
-|u|Microseconds . Note that date() will always generate 000000 since it takes an integer parameter, whereas DateTime::format() does support microseconds if DateTime was created with microseconds.|Example: 654321|
-|v|Milliseconds . Same note applies as for u.|Example: 654|
+|u|Microseconds |Example: 654321|
+|v|Milliseconds |Example: 654|
 |Full Date/Time|---|---|
 |U|Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)|See also time()|
 
