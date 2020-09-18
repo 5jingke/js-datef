@@ -2,28 +2,29 @@
  * 格式化日期, 类似php的date函数
  * @param format
  * @param timeStamp
- * @returns String
+ * @returns {*}
+ * @private
  */
 function datef(format, timeStamp) {
     var now = null;
 
     //检查format参数
     format = format ? format : 'Y-m-d H:i:s';
-    
+
     var _typeof = function(v) {
         return Object.prototype.toString.call(v);
     };
-    
+
     var type = {
         value: _typeof,
 
         STRING: _typeof(''),
         FUNCTION: _typeof(new Function),
-        
+
         isString: function (v) {
             return _typeof(v) === this.STRING;
         },
-        
+
         isFunction: function (v) {
             return _typeof(v) === this.FUNCTION;
         }
@@ -38,20 +39,20 @@ function datef(format, timeStamp) {
     }
     
     // 检查时间戳
-    if(timeStamp instanceof Date) {
+    if(!timeStamp && timeStamp !== 0) {
+        now = new Date();
+    } else if(timeStamp instanceof Date) {
         now = timeStamp;
     } else if(typeof timeStamp == "number" || /^[0-9]+$/.test(String(timeStamp))) {
         now = new Date(timeStamp*1000);
-    } else if(timeStamp !== 0) {
+    } else {
         now = new Date(timeStamp);
-        
+
         if(isNaN(now.getTime())) {
             return '';
         }
-    } else {
-        now = new Date();
     }
-    
+
     var
         year = now.getFullYear(),
         month = now.getMonth()+1,
@@ -61,17 +62,21 @@ function datef(format, timeStamp) {
         min = now.getMinutes(),
         sec = now.getSeconds()
     ;
-    
+
     /**
      * 左边填充
      */
-    function lpad(str, char, count) {
+    function pad(str, char, count, right) {
         str = String(str);
         char = String(char)[0];
         count = count - str.length;
-        
+
         if(count > 0) {
-            return String(char).repeat(count) + str;
+            if(right) {
+                return str + String(char).repeat(count);
+            } else {
+                return String(char).repeat(count) + str;
+            }
         } else {
             return str;
         }
@@ -83,7 +88,7 @@ function datef(format, timeStamp) {
     function leep_year(y) {
         return (y % 4)==0 && ((y % 100)!=0) || ((y % 400)==0)
     }
-    
+
     /**
      * 一月有多少天
      */
@@ -91,7 +96,7 @@ function datef(format, timeStamp) {
         if(m == 2) {
             return leep_year(y) ? 29 : 28;
         }
-        
+
         return -1 === [3,5,7,9,11].indexOf(m) ? 31 : 30;
     }
 
@@ -103,12 +108,12 @@ function datef(format, timeStamp) {
         if(month == 1 && week == 0) {
             return 1;
         }
-        
+
         var
             daysCountInYear = days_in_year(year),
             firstWeek = (new Date(year + '-01-04')).getDay()
         ;
-        
+
         firstWeek = firstWeek == 0 ? 7 : firstWeek;
 
         if(daysCountInYear > 4 - firstWeek) {
@@ -122,7 +127,7 @@ function datef(format, timeStamp) {
                 //下一年的第一周的星期
                 var nextWeekFirstWeek = (new Date((year+1) + '-01-04')).getDay();
                 nextWeekFirstWeek = nextWeekFirstWeek == 0 ? 7 : nextWeekFirstWeek;
-    
+
                 // 计算当天日期是否处于下一年中的第一周范围内
                 if( now.getDate()-32 >= 4 - nextWeekFirstWeek) {
                     return 1;
@@ -143,11 +148,11 @@ function datef(format, timeStamp) {
 
     function days_in_year(y)  {
         var daysCountInYear = 0;
-    
+
         for(var i=0; i<now.getMonth(); i++) {
             daysCountInYear += days_in_month(y, i+1);
         }
-    
+
         daysCountInYear += day;
         return daysCountInYear;
     }
@@ -155,26 +160,26 @@ function datef(format, timeStamp) {
     var DAY_SUBFIX = {1:'st', 2:'nd', 3:'rd', 21:'st', 22:'nd', 23:'rd', 31:'st'};
     var MONTH_NAME = [null, 'January', 'February', 'March', 'April', 'May', "Jun", "July", "August", "September", "October", "November", "December"];
     var WEEK_NAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
+
     var keymap = {
         // 天, 01-31
-        d: lpad(day, 0, 2),
-        
+        d: pad(day, 0, 2),
+
         // 天, 1-31
         j: String(day),
-        
+
         // 周名(短)
         D: function() {
             return WEEK_NAME[week].substr(0, 3);
         },
-        
+
         // 周名
         l: WEEK_NAME[week],
         N: week ? week : 7,
-        
+
         // 月份后缀, 如th, rd
         S: DAY_SUBFIX[day]?DAY_SUBFIX[day]:'th',
-        
+
         // 周0-6
         w: week,
 
@@ -185,17 +190,17 @@ function datef(format, timeStamp) {
 
         //当年第几周
         W: function () {
-            return lpad(week_of_year(), 0, 2);
+            return pad(week_of_year(), 0, 2);
         },
-    
+
         // 月份名称
         F: MONTH_NAME[month],
-        
+
         // 月份短名称
         M: MONTH_NAME[month].substr(0,3),
-        
+
         // 月份01-12
-        m: lpad(month, 0,2),
+        m: pad(month, 0,2),
 
         //指定月份有多少天, 28-31
         n: now.getMonth() + 1,
@@ -207,23 +212,23 @@ function datef(format, timeStamp) {
         L: function() {
             return Number(leep_year(year));
         },
-    
+
         // 年份 如:2001
         Y: String(year),
         o: function() {
             var weekofyear = week_of_year();
-            
+
             if(month == 1 && weekofyear > 8) {
                 return String(year-1);
             }
-            
+
             if(month == 12 && weekofyear < 8) {
                 return String(year + 1);
             }
-            
+
             return String(year);
         },
-        
+
         // 年份 如 01
         y: function() {
             return String(year).substr(2)
@@ -232,29 +237,34 @@ function datef(format, timeStamp) {
         // 上午下午
         a: ['am', 'pm'][Number(hour >= 12)].toLowerCase(),
         A: ['am', 'pm'][Number(hour >= 12)].toUpperCase(),
-        
+
         // 小时, 24小时制, 如8, 16
         G: String(hour),
         // 小时, 12小时制, 如8, 4
         g: String(hour == 0 ? 12 : hour-12),
-        
+
         // 小时, 24小时制, 如08, 16
-        H: lpad(hour, 0, 2),
-        
+        H: pad(hour, 0, 2),
+
         // 小时, 12小时制, 如08, 04
-        h: lpad(hour == 0 ? 12 : hour-12, 0, 2),
-    
+        h: pad(hour == 0 ? 12 : hour-12, 0, 2),
+
         // 分钟, 如09
-        i: lpad(min, 0, 2),
-        
+        i: pad(min, 0, 2),
+
         // 秒钟
-        s: lpad(sec, 0, 2),
-        
+        s: pad(sec, 0, 2),
+
         // 微秒
         u: function() {
-            return lpad(String(now.getMilliseconds()), 0, 6);
+            return pad(String(now.getMilliseconds()), 0, 6, true);
         },
         
+        // 毫秒
+        v: function() {
+            return pad(String(now.getMilliseconds()).substr(0, 3), 0, 3, true)
+        },
+
         // 时间戳(秒)
         U: function() {
             return String(parseInt(now.getTime()/1000));
