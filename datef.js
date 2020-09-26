@@ -1,12 +1,23 @@
 /**
- * 格式化日期, 类似php的date函数
- * @param format
- * @param timeStamp
- * @returns {*}
- * @private
+ * 格式化日期, 类似php的date函数，具体使用方式请参考文档 
+ * @see https://gitee.com/jinko/js-datef/blob/master/README.md
+ * @see https://gitee.com/jinko/js-datef/blob/master/README.en.md
+ * 
+ * @param {String} format 字符串格式
+ * 指定生成时间格式的字符串，例如 Y-m-d H:i:s 会生成类似 2020-12-12 09:30:00 的时间格式
+ * 
+ * @param {String|Date|Number|null} time 日期
+ * 指定的时间或日期, 可以是时间戳（秒）、Date对象、字符串时间格式（如2020-12-21）
+ * 若为空（null、undefined、false、空字符串）则取当前时间
+ * 
+ * @param {String} adjustments 调节器
+ * 格式 [(prev|next) {weekname}](+|-){number}[y|m|d|h|i|s|w]
+ * 例如 next monday + 2h
+ * 
+ * @returns {String}
  */
-function datef(format, timeStamp) {
-    var now = null;
+function datef(format, time, adjustments) {
+    var targetDate = null;
 
     //检查format参数
     format = format ? format : 'Y-m-d H:i:s';
@@ -20,6 +31,7 @@ function datef(format, timeStamp) {
 
         STRING: _typeof(''),
         FUNCTION: _typeof(new Function),
+        UNDEFINED: _typeof(undefined),
 
         isString: function (v) {
             return _typeof(v) === this.STRING;
@@ -27,6 +39,10 @@ function datef(format, timeStamp) {
 
         isFunction: function (v) {
             return _typeof(v) === this.FUNCTION;
+        },
+        
+        isUndefined: function (v) {
+            return _typeof(v) === this.UNDEFINED;
         }
     };
 
@@ -34,34 +50,92 @@ function datef(format, timeStamp) {
         if(type.isFunction(format.toString)) {
             format = format.toString();
         } else {
+            console.error("Invalid argument 1 \""+ format +"\" for datef()\n");
             return '';
         }
     }
     
     // 检查时间戳
-    if(!timeStamp && timeStamp !== 0) {
-        now = new Date();
-    } else if(timeStamp instanceof Date) {
-        now = timeStamp;
-    } else if(typeof timeStamp == "number" || /^[0-9]+$/.test(String(timeStamp))) {
-        now = new Date(timeStamp*1000);
+    if(!time && time !== 0) {
+        targetDate = new Date();
+    } else if(time instanceof Date) {
+        targetDate = time;
+    } else if(typeof time == "number" || /^[0-9]+$/.test(String(time))) {
+        targetDate = new Date(time*1000);
     } else {
-        now = new Date(timeStamp);
+        targetDate = new Date(time);
 
-        if(isNaN(now.getTime())) {
+        if(isNaN(targetDate.getTime())) {
+            console.error('Invalid argument 2 "'+ time +'" for datef()');
             return '';
         }
     }
 
+    try {
+        targetDate = adjust(targetDate, adjustments);
+    } catch (e) {
+        console.error(
+            "Unrecognizable argument 3 \""+ adjustments +"\" for datef()\n" +
+            (e ? "\n"+e : '') +
+            "see https://gitee.com/jinko/js-datef/blob/master/README.md\n" +
+            "https://gitee.com/jinko/js-datef/blob/master/README.en.md"
+        );
+        return '';
+    }
+    
     var
-        year = now.getFullYear(),
-        month = now.getMonth()+1,
-        day = now.getDate(),
-        week = now.getDay(),
-        hour = now.getHours(),
-        min = now.getMinutes(),
-        sec = now.getSeconds()
+        year = targetDate.getFullYear(),
+        month = targetDate.getMonth()+1,
+        day = targetDate.getDate(),
+        week = targetDate.getDay(),
+        hour = targetDate.getHours(),
+        min = targetDate.getMinutes(),
+        sec = targetDate.getSeconds()
     ;
+    
+    function adjust(date, adjustments) {
+        if(!adjustments || !type.isString(adjustments)) {
+            return date;
+        }
+        
+        adjustments = adjustments.toLowerCase().replace(/^\s+|\s+$/, '');
+        var adjustSec = 0;
+        var matched = adjustments.match(/^((?:next|prev)\s+)?((?:[a-z\-]+)\s*)?((?:[+\-]\s*(?:[0-9]+[ymdhisw]?\s*))*)$/);
+        var weekSec = 0;
+        var weekIndex = {
+            monday: 1, mon:1,
+            tuesday: 2, tue:2,
+            wednesday: 3, wed:3,
+            thursday: 4, thu:4,
+            friday: 5, fri:5,
+            saturday: 6, sat:6,
+            sunday: 7, sun:7
+        }
+        
+        if(matched[2]) {
+            var day = weekIndex[matched[2]];
+            
+            if(type.isUndefined(day)) {
+                throw "Invalid '"+ day +"'";
+            }
+
+            var curday = date.getDay();
+            // curday = curday == 0 ? 7 : curday;
+            var weekDay = curday - day;
+            // weekDay = weekDay > 0 ? 7 - weekDay : -weekDay;
+            weekSec = weekDay * 24 * 3600 * -1;
+        }
+        
+        if(matched[1] == 'prev') {
+            adjustSec -= weekSec
+        }
+        
+        if(!matched) {
+            throw "";
+        }
+        
+        return date;
+    }
 
     /**
      * 左边填充
@@ -118,7 +192,7 @@ function datef(format, timeStamp) {
 
         if(daysCountInYear > 4 - firstWeek) {
             // 属于今年的周, 计算当年第一周的范围
-            if(daysCountInYear <= 4+(7-firstWeek) && now.getDate() >= 4-(firstWeek-1) && now.getDate() <= 4+(7-firstWeek)) {
+            if(daysCountInYear <= 4+(7-firstWeek) && targetDate.getDate() >= 4-(firstWeek-1) && targetDate.getDate() <= 4+(7-firstWeek)) {
                 return 1;
             }
 
@@ -129,7 +203,7 @@ function datef(format, timeStamp) {
                 nextWeekFirstWeek = nextWeekFirstWeek == 0 ? 7 : nextWeekFirstWeek;
 
                 // 计算当天日期是否处于下一年中的第一周范围内
-                if( now.getDate()-32 >= 4 - nextWeekFirstWeek) {
+                if( targetDate.getDate()-32 >= 4 - nextWeekFirstWeek) {
                     return 1;
                 }
             }
@@ -149,7 +223,7 @@ function datef(format, timeStamp) {
     function days_in_year(y)  {
         var daysCountInYear = 0;
 
-        for(var i=0; i<now.getMonth(); i++) {
+        for(var i=0; i<targetDate.getMonth(); i++) {
             daysCountInYear += days_in_month(y, i+1);
         }
 
@@ -203,7 +277,7 @@ function datef(format, timeStamp) {
         m: pad(month, 0,2),
 
         //指定月份有多少天, 28-31
-        n: now.getMonth() + 1,
+        n: targetDate.getMonth() + 1,
         t: function() {
             return days_in_month(year, month);
         },
@@ -257,17 +331,17 @@ function datef(format, timeStamp) {
 
         // 微秒
         u: function() {
-            return pad(String(now.getMilliseconds()), 0, 6, true);
+            return pad(String(targetDate.getMilliseconds()), 0, 6, true);
         },
         
         // 毫秒
         v: function() {
-            return pad(String(now.getMilliseconds()).substr(0, 3), 0, 3, true)
+            return pad(String(targetDate.getMilliseconds()).substr(0, 3), 0, 3, true)
         },
 
         // 时间戳(秒)
         U: function() {
-            return String(parseInt(now.getTime()/1000));
+            return String(parseInt(targetDate.getTime()/1000));
         }
     };
 
@@ -277,7 +351,7 @@ function datef(format, timeStamp) {
         if(typeof keymap[format[i]] == 'undefined') {
             newFormat += format[i];
         } else {
-            let mapVal = keymap[format[i]];
+            var mapVal = keymap[format[i]];
             newFormat += type.isFunction(mapVal) ? mapVal() : mapVal;
         }
     }
