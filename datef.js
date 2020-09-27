@@ -10,7 +10,7 @@
  * 指定的时间或日期, 可以是时间戳（秒）、Date对象、字符串时间格式（如2020-12-21）
  * 若为空（null、undefined、false、空字符串）则取当前时间
  * 
- * @param {String} adjustments 调节器
+ * @param {String|undefined} adjustments 调节器
  * 格式 [(prev|next) {weekname}](+|-){number}[y|m|d|h|i|s|w]
  * 例如 next monday + 2h
  * 
@@ -72,7 +72,9 @@ function datef(format, time, adjustments) {
     }
 
     try {
-        targetDate = adjust(targetDate, adjustments);
+        if(adjustments) {
+            targetDate = adjust(targetDate, adjustments);
+        }
     } catch (e) {
         console.error(
             "Unrecognizable argument 3 \""+ adjustments +"\" for datef()\n" +
@@ -100,7 +102,7 @@ function datef(format, time, adjustments) {
         
         adjustments = adjustments.toLowerCase().replace(/^\s+|\s+$/, '');
         var adjustSec = 0;
-        var matched = adjustments.match(/^((?:next|prev)\s+)?((?:[a-z\-]+)\s*)?((?:[+\-]\s*(?:[0-9]+[ymdhisw]?\s*))*)$/);
+        var matched = adjustments.match(/^((?:next|prev)\s+)?((?:[a-z\-]+)\s*)?((?:[+\-]\s*(?:(?:[0-9]+[ymdhisw]?)+\s*))*)$/);
         var weekSec = 0;
         var weekIndex = {
             monday: 1, mon:1,
@@ -111,29 +113,82 @@ function datef(format, time, adjustments) {
             saturday: 6, sat:6,
             sunday: 7, sun:7
         }
+
+        if(!matched) {
+            throw "";
+        }
         
-        if(matched[2]) {
-            var day = weekIndex[matched[2]];
+        var weekAdjustment = matched[2];
+        var detailAdjustment = matched[3];
+        
+        if(weekAdjustment) {
+            var day = weekIndex[weekAdjustment];
             
             if(type.isUndefined(day)) {
                 throw "Invalid '"+ day +"'";
             }
 
             var curday = date.getDay();
-            // curday = curday == 0 ? 7 : curday;
+            curday = curday==0?7:curday;
             var weekDay = curday - day;
-            // weekDay = weekDay > 0 ? 7 - weekDay : -weekDay;
             weekSec = weekDay * 24 * 3600 * -1;
         }
         
-        if(matched[1] == 'prev') {
-            adjustSec -= weekSec
+        var keyValues = {d:24*3600, h:3600, i:60, s:1, w:7*24*3600};
+        
+        if(detailAdjustment) {
+            detailAdjustment
+                .match(/([+\-]([0-9]+[ymdhisw]?)+\s*)/g)
+                .forEach(function(s) {
+                    s = s.trim();
+                    var op = s.substr(0, 1);
+                    op = op=='-'?-1:1;
+                    
+                    s.match(/([0-9]+[ymdhisw]?\s*)/g).forEach(function (value) {
+                        if(/^[0-9]+$/.test(value)) {
+                            adjustSec += parseInt(value)*op;
+                            return;
+                        }
+                        
+                        var key = value.substr(-1);
+                        var val = value.substr(0);
+
+                        val = parseInt(val.substr(0, val.length-1));
+
+                        if(keyValues[key]) {
+                            val = val * keyValues[key];
+                        } else {
+                            var year = date.getFullYear();
+                            var month = date.getMonth()+1;
+
+                            if(key == 'y') {
+                                year += val*op;
+                            } else if(key == 'm') {
+                                year += parseInt(val/12) * op;
+                                month += (val%12) * op;
+
+                                if(op>0 && month>12) {
+                                    month -= 12;
+                                    year ++;
+                                }
+
+                                if(op<0 && month < 1) {
+                                    month += 12;
+                                    year --;
+                                }
+                            }
+
+                            date = new Date(datef(year + '-'+ pad(month, '0', 2) +'-d H:i:s', date));
+                            return;
+                        }
+
+                        adjustSec += val*op;
+                    })
+                })
+            ;
         }
         
-        if(!matched) {
-            throw "";
-        }
-        
+        date = new Date(date.getTime() + (adjustSec+weekSec) * 1000);
         return date;
     }
 
