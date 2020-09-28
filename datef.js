@@ -1,24 +1,31 @@
 /**
- * 格式化日期, 类似php的date函数，具体使用方式请参考文档 
+ * 格式化日期, 类似php的date函数，具体使用方式请参考文档
  * @see https://gitee.com/jinko/js-datef/blob/master/README.md
  * @see https://gitee.com/jinko/js-datef/blob/master/README.en.md
- * 
+ *
  * @param {String} format 字符串格式
  * 指定生成时间格式的字符串，例如 Y-m-d H:i:s 会生成类似 2020-12-12 09:30:00 的时间格式
- * 
+ *
  * @param {String|Date|Number|null} time 日期
  * 指定的时间或日期, 可以是时间戳（秒）、Date对象、字符串时间格式（如2020-12-21）
  * 若为空（null、undefined、false、空字符串）则取当前时间
- * 
+ *
  * @param {String|undefined} adjustments 调节器
  * 格式 [(prev|next) {weekname}](+|-){number}[y|m|d|h|i|s|w]
  * 例如 next monday + 2h
- * 
+ *
  * @returns {String}
  */
 function datef(format, time, adjustments) {
     var targetDate = null;
-
+    var funcName;
+    
+    try {
+        funcName = arguments.callee.name;
+    } catch (e) {
+        funcName = 'datef';
+    }
+    
     //检查format参数
     format = format ? format : 'Y-m-d H:i:s';
 
@@ -32,6 +39,7 @@ function datef(format, time, adjustments) {
         STRING: _typeof(''),
         FUNCTION: _typeof(new Function),
         UNDEFINED: _typeof(undefined),
+        NUMBER: _typeof(1),
 
         isString: function (v) {
             return _typeof(v) === this.STRING;
@@ -43,14 +51,18 @@ function datef(format, time, adjustments) {
         
         isUndefined: function (v) {
             return _typeof(v) === this.UNDEFINED;
-        }
+        },
+        
+        isNumber: function (v) {
+            return _typeof(v) === this.NUMBER;
+        },
     };
 
     if(!type.isString(format)) {
         if(type.isFunction(format.toString)) {
             format = format.toString();
         } else {
-            console.error("Invalid argument 1 \""+ format +"\" for datef()\n");
+            console.error("Invalid argument 1 \""+ format +"\" for "+funcName+"()\n");
             return '';
         }
     }
@@ -60,13 +72,18 @@ function datef(format, time, adjustments) {
         targetDate = new Date();
     } else if(time instanceof Date) {
         targetDate = time;
-    } else if(typeof time == "number" || /^[0-9]+$/.test(String(time))) {
-        targetDate = new Date(time*1000);
+    } else if(type.isNumber(time)) {
+        targetDate = new Date(parseInt(time)*1000);
     } else {
+        if(type.isString(time) && time.indexOf(':') == -1) {
+            // 采用php的默认时间
+            time += ' 00:00:00';
+        }
+        
         targetDate = new Date(time);
 
         if(isNaN(targetDate.getTime())) {
-            console.error('Invalid argument 2 "'+ time +'" for datef()');
+            console.error('Invalid argument 2 "'+ time +'" for '+funcName+'()');
             return '';
         }
     }
@@ -77,7 +94,7 @@ function datef(format, time, adjustments) {
         }
     } catch (e) {
         console.error(
-            "Unrecognizable argument 3 \""+ adjustments +"\" for datef()\n" +
+            "Unrecognizable argument 3 \""+ adjustments +"\" for "+funcName+"()\n" +
             (e ? "\n"+e : '') +
             "see https://gitee.com/jinko/js-datef/blob/master/README.md\n" +
             "https://gitee.com/jinko/js-datef/blob/master/README.en.md"
@@ -95,6 +112,12 @@ function datef(format, time, adjustments) {
         sec = targetDate.getSeconds()
     ;
     
+    /**
+     * 时间调整
+     * @param date
+     * @param adjustments
+     * @returns {Date|*}
+     */
     function adjust(date, adjustments) {
         if(!adjustments || !type.isString(adjustments)) {
             return date;
@@ -137,6 +160,9 @@ function datef(format, time, adjustments) {
         var keyValues = {d:24*3600, h:3600, i:60, s:1, w:7*24*3600};
         
         if(detailAdjustment) {
+            var year = date.getFullYear();
+            var month = date.getMonth()+1;
+            
             detailAdjustment
                 .match(/([+\-]([0-9]+[ymdhisw]?)+\s*)/g)
                 .forEach(function(s) {
@@ -158,9 +184,6 @@ function datef(format, time, adjustments) {
                         if(keyValues[key]) {
                             val = val * keyValues[key];
                         } else {
-                            var year = date.getFullYear();
-                            var month = date.getMonth()+1;
-
                             if(key == 'y') {
                                 year += val*op;
                             } else if(key == 'm') {
@@ -177,8 +200,8 @@ function datef(format, time, adjustments) {
                                     year --;
                                 }
                             }
-
-                            date = new Date(datef(year + '-'+ pad(month, '0', 2) +'-d H:i:s', date));
+    
+                            // date = new Date(datef(year + '-'+ pad(month, '0', 2) +'-d H:i:s', date));
                             return;
                         }
 
@@ -186,6 +209,9 @@ function datef(format, time, adjustments) {
                     })
                 })
             ;
+    
+            date.setFullYear(year);
+            date.setMonth(month-1);
         }
         
         date = new Date(date.getTime() + (adjustSec+weekSec) * 1000);
@@ -193,7 +219,7 @@ function datef(format, time, adjustments) {
     }
 
     /**
-     * 左边填充
+     * 填充
      */
     function pad(str, char, count, right) {
         str = String(str);
@@ -217,69 +243,122 @@ function datef(format, time, adjustments) {
     function leep_year(y) {
         return (y % 4)==0 && ((y % 100)!=0) || ((y % 400)==0)
     }
-
+    
     /**
      * 一月有多少天
+     * @param y 年份, 例如2018
+     * @param m 月份, 范围1-12
+     * @returns {number}
      */
     function days_in_month(y, m)  {
         if(m == 2) {
             return leep_year(y) ? 29 : 28;
         }
 
-        return -1 === [3,5,7,9,11].indexOf(m) ? 31 : 30;
+        //是否小月
+        return [4,6,9,11].indexOf(m)>=0 ? 30 : 31;
     }
-
+    
     /**
      * 一年的第几周
+     * @param m 月份, 范围1-12
      * @returns {number}
      */
     function week_of_year() {
-        if(month == 1 && week == 0) {
+        let daysOfYear = days_of_year();
+        let firstWeek = new Date(year + '-01-01 00:00:00').getDay();
+        let lastWeek = new Date(year + '-12-31  00:00:00').getDay();
+        firstWeek = firstWeek == 0 ? 7 : firstWeek;
+        lastWeek = lastWeek == 0 ? 7 : lastWeek;
+        
+        let beginDay=1, endDay=leep_year(year) ? 366 : 365;
+        
+        if(firstWeek > 4) {
+            beginDay = 1 + 8-firstWeek;
+        }
+        
+        if(lastWeek < 4) {
+            endDay -= lastWeek;
+        }
+        
+        if(daysOfYear < beginDay) {
+            //上一年的最后一周
+            let totalDaysLastYear = leep_year(year-1) ? 366 : 365;
+            let lastYearFirstWeek = new Date((year-1) + '-01-01 00:00:00').getDay();
+            
+            if(lastYearFirstWeek > 4) {
+                totalDaysLastYear -= 8-lastYearFirstWeek+1;
+            }
+            
+            return Math.ceil(totalDaysLastYear / 7) + 1;
+        }
+        
+        if(daysOfYear > endDay) {
+            //下一年的第一周
             return 1;
         }
-
-        var
-            daysCountInYear = days_in_year(year),
-            firstWeek = (new Date(year + '-01-04')).getDay()
-        ;
-
-        firstWeek = firstWeek == 0 ? 7 : firstWeek;
-
-        if(daysCountInYear > 4 - firstWeek) {
-            // 属于今年的周, 计算当年第一周的范围
-            if(daysCountInYear <= 4+(7-firstWeek) && targetDate.getDate() >= 4-(firstWeek-1) && targetDate.getDate() <= 4+(7-firstWeek)) {
-                return 1;
-            }
-
-            // 12月份末尾需要判断是否是下一年的第一周
-            if(month == 12) {
-                //下一年的第一周的星期
-                var nextWeekFirstWeek = (new Date((year+1) + '-01-04')).getDay();
-                nextWeekFirstWeek = nextWeekFirstWeek == 0 ? 7 : nextWeekFirstWeek;
-
-                // 计算当天日期是否处于下一年中的第一周范围内
-                if( targetDate.getDate()-32 >= 4 - nextWeekFirstWeek) {
-                    return 1;
-                }
-            }
-
-            //当年当前日期的总天数
-            return Math.ceil((daysCountInYear + (7 - week) - 3) / 7);
-        } else {
-            // 计算去年最后一周
-            var lastWeek = (new Date((year-1) + '-12-31')).getDay();
-            lastWeek = lastWeek == 0 ? 7 : lastWeek;
-            var daysInLastYear = leep_year(year-1) ? 366 : 365;
-            // (总天数 - 4号到当前日的天数 + 补足日期周数) / 7
-            return Math.ceil((daysInLastYear - 3+ (7 - lastWeek)) / 7);
-        }
+        
+        daysOfYear -= 8-firstWeek+1;
+        return Math.ceil(daysOfYear / 7) + 1;
+        // // 上一年的周
+        // if(day < beginDay) {
+        //     let lastYearWeek = new Date(year + '-12-31 00:00:00').getDay();
+        //     lastYearWeek = lastYearWeek == 0 ? 7 : lastYearWeek;
+        // }
+        
+        
+        // return Math.ceil((daysOfYear-beginDayOffset) / 7);
+        
+        // if(m == 1 && week == 0) {
+        //     return 1;
+        // }
+        //
+        // var
+        //     daysCountInYear = days_in_year(y, m),
+        //     firstWeek = (new Date(year + '-01-04')).getDay()
+        // ;
+        //
+        // firstWeek = firstWeek == 0 ? 7 : firstWeek;
+        //
+        // if(daysCountInYear > 4 - firstWeek) {
+        //     // 属于今年的周, 计算当年第一周的范围
+        //     if(daysCountInYear <= 4+(7-firstWeek) && targetDate.getDate() >= 4-(firstWeek-1) && targetDate.getDate() <= 4+(7-firstWeek)) {
+        //         return 1;
+        //     }
+        //
+        //     // 12月份末尾需要判断是否是下一年的第一周
+        //     if(m == 12) {
+        //         //下一年的第一周的星期
+        //         var nextWeekFirstWeek = (new Date((year+1) + '-01-04')).getDay();
+        //         nextWeekFirstWeek = nextWeekFirstWeek == 0 ? 7 : nextWeekFirstWeek;
+        //
+        //         // 计算当天日期是否处于下一年中的第一周范围内
+        //         if( targetDate.getDate()-32 >= 4 - nextWeekFirstWeek) {
+        //             return 1;
+        //         }
+        //     }
+        //
+        //     //当年当前日期的总天数
+        //     return Math.ceil((daysCountInYear + (7 - week) - 3) / 7);
+        // } else {
+        //     // 计算去年最后一周
+        //     var lastWeek = (new Date((year-1) + '-12-31')).getDay();
+        //     lastWeek = lastWeek == 0 ? 7 : lastWeek;
+        //     var daysInLastYear = leep_year(year-1) ? 366 : 365;
+        //     // (总天数 - 4号到当前日的天数 + 补足日期周数) / 7
+        //     return Math.ceil((daysInLastYear - 3+ (7 - lastWeek)) / 7);
+        // }
     }
-
-    function days_in_year(y)  {
+    
+    /**
+     * 一年的第几天
+     * @returns {number}
+     */
+    function days_of_year()  {
         var daysCountInYear = 0;
 
-        for(var i=0; i<targetDate.getMonth(); i++) {
-            daysCountInYear += days_in_month(y, i+1);
+        for(var i=0; i<month-1; i++) {
+            daysCountInYear += days_in_month(year, i+1);
         }
 
         daysCountInYear += day;
@@ -314,7 +393,7 @@ function datef(format, time, adjustments) {
 
         //年份中的第几天 0 - 361
         z: function() {
-            return days_in_year(year) - 1;
+            return days_of_year()-1;
         },
 
         //当年第几周
@@ -396,7 +475,7 @@ function datef(format, time, adjustments) {
 
         // 时间戳(秒)
         U: function() {
-            return String(parseInt(targetDate.getTime()/1000));
+            return String(parseInt(targetDate.getTime()/1000) - (targetDate.getTimezoneOffset() * 60));
         }
     };
 
