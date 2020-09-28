@@ -94,10 +94,10 @@ function datef(format, time, adjustments) {
         }
     } catch (e) {
         console.error(
-            "Unrecognizable argument 3 \""+ adjustments +"\" for "+funcName+"()\n" +
-            (e ? "\n"+e : '') +
-            "see https://gitee.com/jinko/js-datef/blob/master/README.md\n" +
-            "https://gitee.com/jinko/js-datef/blob/master/README.en.md"
+            "Unrecognizable argument 3 \""+ adjustments +"\" for "+funcName+"()" +
+            (e ? ("\n"+e) : '') +
+            "\nsee https://gitee.com/jinko/js-datef/blob/master/README.md" +
+            "\nhttps://gitee.com/jinko/js-datef/blob/master/README.en.md"
         );
         return '';
     }
@@ -125,7 +125,7 @@ function datef(format, time, adjustments) {
         
         adjustments = adjustments.toLowerCase().replace(/^\s+|\s+$/, '');
         var adjustSec = 0;
-        var matched = adjustments.match(/^((?:next|prev)\s+)?((?:[a-z\-]+)\s*)?((?:[+\-]\s*(?:(?:[0-9]+[ymdhisw]?)+\s*))*)$/);
+        var matched = adjustments.match(/^((?:[a-z\-]+))?\s*((?:[+\-]\s*(?:(?:[0-9]+[ymdhisw]?)+\s*))*)$/);
         var weekSec = 0;
         var weekIndex = {
             monday: 1, mon:1,
@@ -141,14 +141,14 @@ function datef(format, time, adjustments) {
             throw "";
         }
         
-        var weekAdjustment = matched[2];
-        var detailAdjustment = matched[3];
+        var weekAdjustment = matched[1];
+        var detailAdjustment = matched[2];
         
         if(weekAdjustment) {
             var day = weekIndex[weekAdjustment];
             
             if(type.isUndefined(day)) {
-                throw "Invalid '"+ day +"'";
+                throw "Invalid '"+ weekAdjustment +"'";
             }
 
             var curday = date.getDay();
@@ -164,13 +164,13 @@ function datef(format, time, adjustments) {
             var month = date.getMonth()+1;
             
             detailAdjustment
-                .match(/([+\-]([0-9]+[ymdhisw]?)+\s*)/g)
-                .forEach(function(s) {
-                    s = s.trim();
-                    var op = s.substr(0, 1);
+                .match(/([+\-]\s*([0-9]+[ymdhisw]?)+\s*)/g)
+                .forEach(function(adj) {
+                    adj = adj.trim();
+                    var op = adj.substr(0, 1);
                     op = op=='-'?-1:1;
-                    
-                    s.match(/([0-9]+[ymdhisw]?\s*)/g).forEach(function (value) {
+
+                    adj.match(/([0-9]+[ymdhisw]?\s*)/g).forEach(function (value) {
                         if(/^[0-9]+$/.test(value)) {
                             adjustSec += parseInt(value)*op;
                             return;
@@ -201,7 +201,6 @@ function datef(format, time, adjustments) {
                                 }
                             }
     
-                            // date = new Date(datef(year + '-'+ pad(month, '0', 2) +'-d H:i:s', date));
                             return;
                         }
 
@@ -268,6 +267,7 @@ function datef(format, time, adjustments) {
         let daysOfYear = days_of_year();
         let firstWeek = new Date(year + '-01-01 00:00:00').getDay();
         let lastWeek = new Date(year + '-12-31  00:00:00').getDay();
+        
         firstWeek = firstWeek == 0 ? 7 : firstWeek;
         lastWeek = lastWeek == 0 ? 7 : lastWeek;
         
@@ -285,12 +285,15 @@ function datef(format, time, adjustments) {
             //上一年的最后一周
             let totalDaysLastYear = leep_year(year-1) ? 366 : 365;
             let lastYearFirstWeek = new Date((year-1) + '-01-01 00:00:00').getDay();
+            lastYearFirstWeek = lastYearFirstWeek == 0 ? 7 : lastYearFirstWeek;
             
             if(lastYearFirstWeek > 4) {
-                totalDaysLastYear -= 8-lastYearFirstWeek+1;
+                //1号是第一周
+                return Math.ceil((totalDaysLastYear-10+lastYearFirstWeek) / 7);
+            } else {
+                //1号不是第一周
+                return Math.ceil(Math.max(totalDaysLastYear - 8+lastYearFirstWeek, 0) / 7) + 1;
             }
-            
-            return Math.ceil(totalDaysLastYear / 7) + 1;
         }
         
         if(daysOfYear > endDay) {
@@ -298,56 +301,13 @@ function datef(format, time, adjustments) {
             return 1;
         }
         
-        daysOfYear -= 8-firstWeek+1;
-        return Math.ceil(daysOfYear / 7) + 1;
-        // // 上一年的周
-        // if(day < beginDay) {
-        //     let lastYearWeek = new Date(year + '-12-31 00:00:00').getDay();
-        //     lastYearWeek = lastYearWeek == 0 ? 7 : lastYearWeek;
-        // }
-        
-        
-        // return Math.ceil((daysOfYear-beginDayOffset) / 7);
-        
-        // if(m == 1 && week == 0) {
-        //     return 1;
-        // }
-        //
-        // var
-        //     daysCountInYear = days_in_year(y, m),
-        //     firstWeek = (new Date(year + '-01-04')).getDay()
-        // ;
-        //
-        // firstWeek = firstWeek == 0 ? 7 : firstWeek;
-        //
-        // if(daysCountInYear > 4 - firstWeek) {
-        //     // 属于今年的周, 计算当年第一周的范围
-        //     if(daysCountInYear <= 4+(7-firstWeek) && targetDate.getDate() >= 4-(firstWeek-1) && targetDate.getDate() <= 4+(7-firstWeek)) {
-        //         return 1;
-        //     }
-        //
-        //     // 12月份末尾需要判断是否是下一年的第一周
-        //     if(m == 12) {
-        //         //下一年的第一周的星期
-        //         var nextWeekFirstWeek = (new Date((year+1) + '-01-04')).getDay();
-        //         nextWeekFirstWeek = nextWeekFirstWeek == 0 ? 7 : nextWeekFirstWeek;
-        //
-        //         // 计算当天日期是否处于下一年中的第一周范围内
-        //         if( targetDate.getDate()-32 >= 4 - nextWeekFirstWeek) {
-        //             return 1;
-        //         }
-        //     }
-        //
-        //     //当年当前日期的总天数
-        //     return Math.ceil((daysCountInYear + (7 - week) - 3) / 7);
-        // } else {
-        //     // 计算去年最后一周
-        //     var lastWeek = (new Date((year-1) + '-12-31')).getDay();
-        //     lastWeek = lastWeek == 0 ? 7 : lastWeek;
-        //     var daysInLastYear = leep_year(year-1) ? 366 : 365;
-        //     // (总天数 - 4号到当前日的天数 + 补足日期周数) / 7
-        //     return Math.ceil((daysInLastYear - 3+ (7 - lastWeek)) / 7);
-        // }
+        if(firstWeek <= 4) {
+            //1号是第一周
+            return Math.ceil(Math.max(daysOfYear - 8+firstWeek, 0) / 7) + 1;
+        } else {
+            //1号不是第一周
+            return Math.ceil((daysOfYear - beginDay + 1)/7);
+        }
     }
     
     /**
@@ -366,7 +326,7 @@ function datef(format, time, adjustments) {
     }
 
     var DAY_SUBFIX = {1:'st', 2:'nd', 3:'rd', 21:'st', 22:'nd', 23:'rd', 31:'st'};
-    var MONTH_NAME = [null, 'January', 'February', 'March', 'April', 'May', "Jun", "July", "August", "September", "October", "November", "December"];
+    var MONTH_NAME = [null, 'January', 'February', 'March', 'April', 'May', "June", "July", "August", "September", "October", "November", "December"];
     var WEEK_NAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     var keymap = {
@@ -475,7 +435,7 @@ function datef(format, time, adjustments) {
 
         // 时间戳(秒)
         U: function() {
-            return String(parseInt(targetDate.getTime()/1000) - (targetDate.getTimezoneOffset() * 60));
+            return String(parseInt(targetDate.getTime()/1000));
         }
     };
 
