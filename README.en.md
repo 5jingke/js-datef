@@ -8,7 +8,7 @@ Format a local time/date
 ```html
 <script type="text/javascript" src="datef.js"></script>
 
-或者
+or
 
 <script type="text/javascript" src="datef.min.js"></script>
 ```
