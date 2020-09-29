@@ -470,9 +470,28 @@ function datef(format, time, adjustments) {
     };
 
     var newFormat = '';
-
+    
     for(var i=0; i<format.length; i++) {
-        if(typeof keymap[format[i]] == 'undefined') {
+        if(format[i] == '\\') {
+            if(format[i+1] == '\\') {
+                i++;
+                newFormat += '\\';
+            } else if(format[i+1] == '{') {
+                i++;
+                newFormat += '{';
+            } else {
+                newFormat += '\\';
+            }
+        } else if(format[i] == '{') {
+            var pos = format.indexOf('}', i);
+            
+            if(pos == -1) {
+                newFormat += '{';
+            } else {
+                newFormat += format.substr(i+1, pos-i-1);
+                i = pos;
+            }
+        } else if(typeof keymap[format[i]] == 'undefined') {
             newFormat += format[i];
         } else {
             var mapVal = keymap[format[i]];

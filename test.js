@@ -224,3 +224,8 @@ add_unit_test('Y-m-d H:i:s', 'tue:end+3d1h', '2020-09-10 02:55:44', '2020-09-12 
 
 add_unit_test('Y-m-d H:i:s', '+1m', '2020-01-31', '2020-02-29 00:00:00');
 add_unit_test('Y-m-d H:i:s', '+1y', '2020-02-29', '2021-02-28 00:00:00');
+
+add_unit_test('{明年的今天是} Y-m-d', '+1y', '2020-09-28', '明年的今天是 2021-09-28');
+add_unit_test('{Tomorrow is} Y-m-d', '+1d', '2020-09-28', 'Tomorrow is 2020-09-29');
+add_unit_test('{Tomorrow is} \\{ymd} Y-m-d', '+1d', '2020-09-28', 'Tomorrow is {200929} 2020-09-29');
+add_unit_test('{Tomorrow is} \\\\{ymd} Y-m-d', '+1d', '2020-09-28', 'Tomorrow is \\{200929} 2020-09-29');

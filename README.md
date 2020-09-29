@@ -3,8 +3,42 @@
 #### 介绍
 JavaScript 日期时间格式化函数
 
+#### 安装或引入
 
-#### 示例
+```html
+<script type="text/javascript" src="datef.js"></script>
+
+或者
+
+<script type="text/javascript" src="datef.min.js"></script>
+```
+
+#### 定义
+
+```javascript
+/**
+ * @param {String} format 字符串格式
+ * 指定生成时间格式的字符串，例如 Y-m-d H:i:s 会生成类似 2020-12-12 09:30:00 的时间格式
+ * 详细格式说明请参考文档
+ *
+ * @param {String|Date|Number|null} time 日期
+ * 指定的时间或日期, 可以是时间戳（秒）、Date对象、字符串时间格式（如2020-12-21）
+ * 若为空（null、undefined、false、空字符串）则取当前时间
+ *
+ * @param {String|undefined} adjustments 调节器
+ * 用于重新调整时间, 例如当前时间的周一、或者增加2周时间， 减少50分钟等。
+ * 格式 [{weekname[:begin|end]}](+|-){number}[y|m|d|h|i|s|w] 不区分大小写
+ * 示例:
+ * 周一这个时间点再加2个小时 = Monday + 2h
+ * 加三周少50分钟 = +3w-50i
+ * 详细格式说明请参考文档
+ *
+ * @returns {String}
+ */
+function datef(format, date, adjustments) {};
+```
+
+#### 使用示例
 
 ```javascript
 
@@ -90,6 +124,17 @@ datef('U', null, "-3h");
 //当前时间戳
 datef('U');
 
+// 字符串原样显示 Tomorrow is 2020-09-29
+datef('{Tomorrow is} Y-m-d', '2020-09-28', '+1d');
+
+// '{}'符串原样显示 Tomorrow is {200929} 2020-09-29
+datef('{Tomorrow is} \\{ymd} Y-m-d', '2020-09-28', '+1d');
+
+// '\'符串原样显示 Tomorrow is \ ymd 2020-09-29
+datef('{Tomorrow is} \\\\ {ymd} Y-m-d', '2020-09-28', '+1d');
+
+
+//
 ```
 
 
