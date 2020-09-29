@@ -159,16 +159,14 @@ function datef(format, time, adjustments) {
         }
         
         if(weekAdjustment) {
-            var day = weekIndex[weekAdjustment];
-            
-            if(type.isUndefined(day)) {
+            if(type.isUndefined(weekIndex[weekAdjustment])) {
                 throw "Invalid '"+ weekAdjustment +"' for weekname";
             }
 
             var curday = date.getDay();
             curday = curday==0?7:curday;
-            var weekDay = curday - day;
-            weekSec = weekDay * 24 * 3600 * -1;
+            var weekDay = curday - weekIndex[weekAdjustment];
+            date = new Date(date.getTime() + (weekDay * 24 * 3600 * -1 * 1000));
         }
     
         if(beAdjustment) {
