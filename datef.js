@@ -5,14 +5,19 @@
  *
  * @param {String} format 字符串格式
  * 指定生成时间格式的字符串，例如 Y-m-d H:i:s 会生成类似 2020-12-12 09:30:00 的时间格式
+ * 详细格式说明请参考文档
  *
  * @param {String|Date|Number|null} time 日期
  * 指定的时间或日期, 可以是时间戳（秒）、Date对象、字符串时间格式（如2020-12-21）
  * 若为空（null、undefined、false、空字符串）则取当前时间
  *
  * @param {String|undefined} adjustments 调节器
- * 格式 [(prev|next) {weekname}](+|-){number}[y|m|d|h|i|s|w]
- * 例如 next monday + 2h
+ * 用于重新调整时间, 例如当前时间的周一、或者增加2周时间， 减少50分钟等。
+ * 格式 [{weekname[:begin|end]}](+|-){number}[y|m|d|h|i|s|w] 不区分大小写
+ * 示例:
+ * 周一这个时间点再加2个小时 = Monday + 2h
+ * 加三周少50分钟 = +3w-50i
+ * 详细格式说明请参考文档
  *
  * @returns {String}
  */
@@ -58,6 +63,7 @@ function datef(format, time, adjustments) {
         },
     };
 
+    //检查format
     if(!type.isString(format)) {
         if(type.isFunction(format.toString)) {
             format = format.toString();
@@ -87,19 +93,20 @@ function datef(format, time, adjustments) {
             return '';
         }
     }
-
-    try {
-        if(adjustments) {
+    
+    //时间调整
+    if(adjustments) {
+        try {
             targetDate = adjust(targetDate, adjustments);
+        } catch (e) {
+            console.error(
+                "Unrecognizable argument 3 \""+ adjustments +"\" for "+funcName+"()" +
+                (e ? ("\n"+e) : '') +
+                "\nsee https://gitee.com/jinko/js-datef/blob/master/README.md" +
+                "\nhttps://gitee.com/jinko/js-datef/blob/master/README.en.md"
+            );
+            return '';
         }
-    } catch (e) {
-        console.error(
-            "Unrecognizable argument 3 \""+ adjustments +"\" for "+funcName+"()" +
-            (e ? ("\n"+e) : '') +
-            "\nsee https://gitee.com/jinko/js-datef/blob/master/README.md" +
-            "\nhttps://gitee.com/jinko/js-datef/blob/master/README.en.md"
-        );
-        return '';
     }
     
     var
@@ -125,7 +132,7 @@ function datef(format, time, adjustments) {
         
         adjustments = adjustments.toLowerCase().replace(/^\s+|\s+$/, '');
         var adjustSec = 0;
-        var matched = adjustments.match(/^((?:[a-z\-]+))?\s*((?:[+\-]\s*(?:(?:[0-9]+[ymdhisw]?)+\s*))*)$/);
+        var matched = adjustments.match(/^((?:[a-z:]+))?\s*((?:[+\-]\s*(?:(?:[0-9]+[ymdhisw]?)+\s*))*)$/);
         var weekSec = 0;
         var weekIndex = {
             monday: 1, mon:1,
@@ -143,12 +150,19 @@ function datef(format, time, adjustments) {
         
         var weekAdjustment = matched[1];
         var detailAdjustment = matched[2];
+        var beAdjustment = null;
+        
+        if(weekAdjustment) {
+            weekAdjustment = weekAdjustment.split(':');
+            beAdjustment = weekAdjustment[1];
+            weekAdjustment = weekAdjustment[0];
+        }
         
         if(weekAdjustment) {
             var day = weekIndex[weekAdjustment];
             
             if(type.isUndefined(day)) {
-                throw "Invalid '"+ weekAdjustment +"'";
+                throw "Invalid '"+ weekAdjustment +"' for weekname";
             }
 
             var curday = date.getDay();
@@ -156,12 +170,27 @@ function datef(format, time, adjustments) {
             var weekDay = curday - day;
             weekSec = weekDay * 24 * 3600 * -1;
         }
+    
+        if(beAdjustment) {
+            if(beAdjustment == 'begin') {
+                date.setHours(0);
+                date.setMinutes(0);
+                date.setSeconds(0);
+            } else if(beAdjustment == 'end') {
+                date.setHours(23);
+                date.setMinutes(59);
+                date.setSeconds(59);
+            } else {
+                throw "Invalid '"+ beAdjustment +"' for daytime";
+            }
+        }
         
         var keyValues = {d:24*3600, h:3600, i:60, s:1, w:7*24*3600};
         
         if(detailAdjustment) {
             var year = date.getFullYear();
             var month = date.getMonth()+1;
+            var day = date.getDate();
             
             detailAdjustment
                 .match(/([+\-]\s*([0-9]+[ymdhisw]?)+\s*)/g)
@@ -201,6 +230,7 @@ function datef(format, time, adjustments) {
                                 }
                             }
     
+                            day = Math.min(days_in_month(year, month), day);
                             return;
                         }
 
@@ -209,6 +239,7 @@ function datef(format, time, adjustments) {
                 })
             ;
     
+            date.setDate(day);
             date.setFullYear(year);
             date.setMonth(month-1);
         }
@@ -260,7 +291,6 @@ function datef(format, time, adjustments) {
     
     /**
      * 一年的第几周
-     * @param m 月份, 范围1-12
      * @returns {number}
      */
     function week_of_year() {
@@ -328,7 +358,7 @@ function datef(format, time, adjustments) {
     var DAY_SUBFIX = {1:'st', 2:'nd', 3:'rd', 21:'st', 22:'nd', 23:'rd', 31:'st'};
     var MONTH_NAME = [null, 'January', 'February', 'March', 'April', 'May', "June", "July", "August", "September", "October", "November", "December"];
     var WEEK_NAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
+    
     var keymap = {
         // 天, 01-31
         d: pad(day, 0, 2),

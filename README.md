@@ -8,7 +8,7 @@ JavaScript 日期时间格式化函数
 
 ```javascript
 
-//"2020-09-30 12:30:11"
+//返回当前时间类似"2020-09-30 12:30:11"的时间格式
 datef('Y-m-d H:i:s');
 datef();
 
@@ -16,31 +16,86 @@ datef();
 datef('ymd');
 
 //"Fri Sep 18 2020 14:59:36"
-datef('D M d Y H:i:s')
+datef('D M d Y H:i:s');
 
 
 //"2021-01-09 08:00:00"
-datef('Y-m-d H:i:s', 1610150400)
+datef('Y-m-d H:i:s', 1610150400);
 
 //"2021-01-09 08:00:00"
-datef('Y-m-d H:i:s', "1610150400")
+datef('Y-m-d H:i:s', "1610150400");
 
 //"2020-12-30 08:00:00"
-datef('Y-m-d H:i:s', "2020-12-30")
+datef('Y-m-d H:i:s', "2020-12-30");
 
 //"Wed Dec 30 2020 10:33:12"
-datef('D M d Y H:i:s', "2020-12-30 10:33:12")
+datef('D M d Y H:i:s', "2020-12-30 10:33:12");
 
 //"2020-09-18"
 var date = new Date();
-datef('Y-m-d', date)
+datef('Y-m-d', date);
+
+
+//当前周周一早上8点
+datef('Y-m-d 08:00:00', null, "mon");
+datef('Y-m-d H:i:s', null, "mon:begin +8h");
+datef('Y-m-d H:i:s', datef('Y-m-d'), 'mon +8h');
+
+
+//当前周一 至 周日 时间
+//周一
+datef('Y-m-d H:i:s', null, "mon:begin");
+//周日
+datef('Y-m-d H:i:s', null, "sun:end");
+
+
+//当月月初至月底
+//月初
+datef('Y-m-01 H:i:s', null, ":begin");
+//月底
+datef('Y-m-t H:i:s', null, ":end");
+
+//最近10天
+var date=new Date();
+//开始
+datef('Y-m-d H:i:s', date, "-10d");
+//结束
+datef('Y-m-d H:i:s', date);
+
+//2013-12-20 10:00:00 的最近七天(最近一周)
+var date=new Date();
+//开始
+datef('Y-m-d H:i:s', '2013-12-20 10:00:00', "-1w");
+//结束
+"2013-12-20 10:00:00"
+
+
+//下月底
+datef('Y-m-t H:i:s', null, ":end +1m");
+
+//上月底
+datef('Y-m-t H:i:s', null, ":end -1m");
+
+//年底
+datef('Y-12-31 H:i:s', null, ":end");
+
+//3小时前
+//开始
+datef(null, null, "-3h");
+//结束
+datef();
+
+//三小时前的时间戳(秒)
+datef('U', null, "-3h");
+//当前时间戳
+datef('U');
 
 ```
 
 
 #### 说明
 
-格式化参数: 
+格式化参数(format): 
 
 | format字符 | 说明| 返回值 |
 | --- | --- | --- |
@@ -79,3 +134,51 @@ datef('Y-m-d', date)
 |U|自 1970 年 1 月 1 日 0 时 0 分 0 秒（GMT 时间）以来的时间，以秒为单位|
 
 
+时间调整格式(adjustments):
+
+> **不区分大小写**
+
+- 周调整
+
+格式: `周名:时间起点`
+
+例如: `Monday:begin`
+
+周名:
+
+| key | 说明 |
+| --- | --- |
+| Mon | 周一 |
+| Monday | 周一 |
+| Tue | 周二 |
+| Tuesday | 周二 |
+| Wed | 周三 |
+| Wednesday | 周三 |
+| Thu | 周四 |
+| Thursday | 周四 |
+| Fri | 周五 |
+| Friday | 周五 |
+| Sat | 周六 |
+| Saturday | 周六 |
+| Sun | 周日 |
+| Sunday | 周日 |
+
+时间起点:
+
+| key | 说明 |
+| --- | --- |
+| begin | 将时间调整到 00:00:00 |
+| end | 将时间调整到  23:59:59 |
+
+
+- 时间调整
+
+| key | 说明 |
+| --- | --- |
+| y | 年份 |
+| m | 月份 |
+| d | 日期 |
+| h | 小时 |
+| i | 分钟 |
+| s | 秒钟 |
+| w | 周 |
