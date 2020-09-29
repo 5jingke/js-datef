@@ -1,9 +1,9 @@
 # js-datef
 
-#### 介绍
+## 介绍
 JavaScript 日期时间格式化函数
 
-#### 安装或引入
+## 安装或引入
 
 ```html
 <script type="text/javascript" src="datef.js"></script>
@@ -13,7 +13,7 @@ JavaScript 日期时间格式化函数
 <script type="text/javascript" src="datef.min.js"></script>
 ```
 
-#### 定义
+## 定义
 
 ```javascript
 /**
@@ -38,7 +38,7 @@ JavaScript 日期时间格式化函数
 function datef(format, date, adjustments) {};
 ```
 
-#### 使用示例
+## 使用示例
 
 ```javascript
 
@@ -138,16 +138,16 @@ datef('{Tomorrow is} \\\\ {ymd} Y-m-d', '2020-09-28', '+1d');
 ```
 
 
-#### 说明
+## 说明
 
-格式化参数(format): 
+#### 格式化参数(format): 
 
 | format字符 | 说明| 返回值 |
 | --- | --- | --- |
 |d|一个月中的第几天，有前导 0 的 2 位数字|从 01 到 31|
 |D|3 个字符表示的星期几|从 Mon 到 Sun|
 |j|一个月中的第几天，无前导 0|从 1 到 31|
-|l (lowercase 'L')|星期几，英文全称|从 Sunday 到 Saturday|
+|l (小写 'L')|星期几，英文全称|从 Sunday 到 Saturday|
 |N|ISO-8601 规定的数字表示的星期几|从 1 （表示星期一）到 7 （表示星期日）|
 |S|一个月中的第几天，带有 2 个字符表示的英语序数词。|st， nd， rd 或者 th。 可以和 j 联合使用。|
 |w|数字表示的星期几|从 0 （星期日） 到 6 （星期六）|
@@ -179,7 +179,7 @@ datef('{Tomorrow is} \\\\ {ymd} Y-m-d', '2020-09-28', '+1d');
 |U|自 1970 年 1 月 1 日 0 时 0 分 0 秒（GMT 时间）以来的时间，以秒为单位|
 
 
-时间调整格式(adjustments):
+#### 时间调整格式(adjustments):
 
 > **不区分大小写**
 
