@@ -142,7 +142,7 @@ function datef(format, time, adjustments) {
             friday: 5, fri:5,
             saturday: 6, sat:6,
             sunday: 7, sun:7
-        }
+        };
 
         if(!matched) {
             throw "";
