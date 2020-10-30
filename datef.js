@@ -437,13 +437,13 @@ function datef(format, time, adjustments) {
         // 小时, 24小时制, 如8, 16
         G: String(hour),
         // 小时, 12小时制, 如8, 4
-        g: String(hour == 0 ? 12 : hour-12),
+        g: String(hour == 0 ? 12 : (hour > 12 ? hour-12 : hour)),
 
         // 小时, 24小时制, 如08, 16
         H: pad(hour, 0, 2),
 
         // 小时, 12小时制, 如08, 04
-        h: pad(hour == 0 ? 12 : hour-12, 0, 2),
+        h: pad(hour == 0 ? 12 : (hour > 12 ? hour-12 : hour), 0, 2),
 
         // 分钟, 如09
         i: pad(min, 0, 2),

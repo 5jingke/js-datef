@@ -108,55 +108,59 @@ function test() {
 
 // 基础测试
 add_unit_test('Y-m-d H:i:s', '', '2020-10-02 10:20:00', '2020-10-02 10:20:00');
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '2020-09-28 16:30:49',
-    '28 Mon 28 Monday 1 th 1 271 40 September 09 Sep 9 30 1 2020 2020 20 pm PM 4 16 16 30 49 ' + (new Date('2020-09-28 16:30:49').getTime()/1000)
+    '28 Mon 28 Monday 1 th 1 271 40 September 09 Sep 9 30 1 2020 2020 20 pm PM 4 16 16 04 30 49 ' + (new Date('2020-09-28 16:30:49').getTime()/1000)
 );
 
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '2000-02-27 16:30:49',
-    '27 Sun 27 Sunday 7 th 0 57 08 February 02 Feb 2 29 1 2000 2000 00 pm PM 4 16 16 30 49 ' + (new Date('2000-02-27 16:30:49').getTime()/1000)
+    '27 Sun 27 Sunday 7 th 0 57 08 February 02 Feb 2 29 1 2000 2000 00 pm PM 4 16 16 04 30 49 ' + (new Date('2000-02-27 16:30:49').getTime()/1000)
 );
 
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '2000-12-30 16:30:49',
-    '30 Sat 30 Saturday 6 th 6 364 52 December 12 Dec 12 31 1 2000 2000 00 pm PM 4 16 16 30 49 ' + (new Date('2000-12-30 16:30:49').getTime()/1000)
+    '30 Sat 30 Saturday 6 th 6 364 52 December 12 Dec 12 31 1 2000 2000 00 pm PM 4 16 16 04 30 49 ' + (new Date('2000-12-30 16:30:49').getTime()/1000)
 );
 
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '2000-01-01 16:30:49',
-    '01 Sat 1 Saturday 6 st 6 0 52 January 01 Jan 1 31 1 1999 2000 00 pm PM 4 16 16 30 49 ' + (new Date('2000-01-01 16:30:49').getTime()/1000)
+    '01 Sat 1 Saturday 6 st 6 0 52 January 01 Jan 1 31 1 1999 2000 00 pm PM 4 16 16 04 30 49 ' + (new Date('2000-01-01 16:30:49').getTime()/1000)
 );
 
-
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '1993-01-01 16:30:49',
-    '01 Fri 1 Friday 5 st 5 0 53 January 01 Jan 1 31 0 1992 1993 93 pm PM 4 16 16 30 49 ' + (new Date('1993-01-01 16:30:49').getTime()/1000)
+    '01 Fri 1 Friday 5 st 5 0 53 January 01 Jan 1 31 0 1992 1993 93 pm PM 4 16 16 04 30 49 ' + (new Date('1993-01-01 16:30:49').getTime()/1000)
 );
 
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '1993-12-30 16:30:49',
-    '30 Thu 30 Thursday 4 th 4 363 52 December 12 Dec 12 31 0 1993 1993 93 pm PM 4 16 16 30 49 ' + (new Date('1993-12-30 16:30:49').getTime()/1000)
+    '30 Thu 30 Thursday 4 th 4 363 52 December 12 Dec 12 31 0 1993 1993 93 pm PM 4 16 16 04 30 49 ' + (new Date('1993-12-30 16:30:49').getTime()/1000)
 );
 
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '1993-06-10 16:30:49',
-    '10 Thu 10 Thursday 4 th 4 160 23 June 06 Jun 6 30 0 1993 1993 93 pm PM 4 16 16 30 49 ' + (new Date('1993-06-10 16:30:49').getTime()/1000)
+    '10 Thu 10 Thursday 4 th 4 160 23 June 06 Jun 6 30 0 1993 1993 93 pm PM 4 16 16 04 30 49 ' + (new Date('1993-06-10 16:30:49').getTime()/1000)
 );
 //
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '2021-08-08 23:59:59',
-    '08 Sun 8 Sunday 7 th 0 219 31 August 08 Aug 8 31 0 2021 2021 21 pm PM 11 23 23 59 59 ' + (new Date('2021-08-08 23:59:59').getTime()/1000)
+    '08 Sun 8 Sunday 7 th 0 219 31 August 08 Aug 8 31 0 2021 2021 21 pm PM 11 23 23 11 59 59 ' + (new Date('2021-08-08 23:59:59').getTime()/1000)
 );
 
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '2004-02-29 00:00:00',
-    '29 Sun 29 Sunday 7 th 0 59 09 February 02 Feb 2 29 1 2004 2004 04 am AM 12 0 00 00 00 ' + (new Date('2004-02-29 00:00:00').getTime()/1000)
+    '29 Sun 29 Sunday 7 th 0 59 09 February 02 Feb 2 29 1 2004 2004 04 am AM 12 0 00 12 00 00 ' + (new Date('2004-02-29 00:00:00').getTime()/1000)
 );
 
-add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H i s U', '',
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
     '2007-02-28 00:00:00',
-    '28 Wed 28 Wednesday 3 th 3 58 09 February 02 Feb 2 28 0 2007 2007 07 am AM 12 0 00 00 00 ' + (new Date('2007-02-28 00:00:00').getTime()/1000)
+    '28 Wed 28 Wednesday 3 th 3 58 09 February 02 Feb 2 28 0 2007 2007 07 am AM 12 0 00 12 00 00 ' + (new Date('2007-02-28 00:00:00').getTime()/1000)
+);
+
+add_unit_test('d D j l N S w z W F m M n t L o Y y a A g G H h i s U', '',
+    '2007-02-28 09:00:00',
+    '28 Wed 28 Wednesday 3 th 3 58 09 February 02 Feb 2 28 0 2007 2007 07 am AM 9 9 09 09 00 00 ' + (new Date('2007-02-28 09:00:00').getTime()/1000)
 );
 
 //失败例子
